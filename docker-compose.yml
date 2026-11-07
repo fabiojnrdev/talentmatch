@@ -1,0 +1,43 @@
+x-app: &app
+  build: .
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  api:
+    <<: *app
+    ports:
+      - "8000:8000"
+
+  worker:
+    <<: *app
+    # I/O-bound (espera da LLM): pool de threads. Ajuste -c conforme o rate limit do provedor.
+    command: celery -A app.worker.celery_app worker -l info -P threads -c 16
+
+  beat:
+    <<: *app
+    command: celery -A app.worker.celery_app beat -l info -s /tmp/celerybeat-schedule
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: talentmatch
+      POSTGRES_PASSWORD: talentmatch
+      POSTGRES_DB: talentmatch
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U talentmatch"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]  # fila efêmera, sem persistir PII em disco
+
+volumes:
+  pgdata:
