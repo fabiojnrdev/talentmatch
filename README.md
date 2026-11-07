@@ -85,6 +85,7 @@ Camadas gratuitas podem usar prompts e respostas para treino: **só use currícu
 | Tentativas por caso | 1,17 em média (7 chamadas para 6 casos; a autocorreção foi acionada) |
 | Tokens por caso | ≈ 1.665 (prompt + completion, somando tentativas) |
 | Latência da LLM | ≈ 19,5 s por caso (soma das chamadas); 11,3 s em uma chamada isolada |
+| Fluxo ponta a ponta via API (Docker) | POST → worker → GET executado manualmente até `SUCCEEDED` (sem teste automatizado) |
 | Stack Docker Compose | Os 5 serviços (api, worker, beat, postgres, redis) subiram sem erro; worker com 16 threads e `results: disabled` |
 
 **Leitura honesta:** com 6 casos, 6/6 não prova alta acurácia. O intervalo de confiança de 95% vai de ≈ 54% a 100%.
